@@ -1,0 +1,137 @@
+# Security Guardrails Configuration
+# Defines PII patterns, injection filters, encryption settings, and compliance rules
+
+pii_detection:
+  enabled: true
+  patterns:
+    ssn:
+      regex: '\b\d{3}-\d{2}-\d{4}\b'
+      description: 'Social Security Number'
+      severity: 'critical'
+    credit_card:
+      regex: '\b(?:\d{4}[-\s]?){3}\d{4}\b'
+      description: 'Credit Card Number'
+      severity: 'critical'
+    phone:
+      regex: '\b(?:\+?1[-.]?)?\(?\d{3}\)?[-.]?\d{3}[-.]?\d{4}\b'
+      description: 'Phone Number'
+      severity: 'high'
+    email:
+      regex: '\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+      description: 'Email Address'
+      severity: 'high'
+    medical_record_number:
+      regex: '\b(?:MRN|Medical Record)[-:]?\s*\d{6,10}\b'
+      description: 'Medical Record Number'
+      severity: 'critical'
+    date_of_birth:
+      regex: '\b(?:DOB|Date of Birth)[-:]?\s*\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b'
+      description: 'Date of Birth'
+      severity: 'high'
+    insurance_id:
+      regex: '\b(?:Insurance ID|Policy)[-:]?\s*[A-Z0-9]{8,15}\b'
+      description: 'Insurance ID or Policy Number'
+      severity: 'high'
+
+prompt_injection:
+  enabled: true
+  blocked_patterns:
+    - 'ignore previous instructions'
+    - 'forget the system prompt'
+    - 'disregard the rules'
+    - 'execute this command'
+    - 'run this code'
+    - 'bypass security'
+    - 'override restrictions'
+    - 'jailbreak'
+    - 'prompt injection'
+    - 'sql injection'
+    - 'script injection'
+  max_prompt_length: 10000
+  max_consecutive_special_chars: 5
+  blocked_keywords:
+    - 'DROP TABLE'
+    - 'DELETE FROM'
+    - 'UNION SELECT'
+    - 'exec('
+    - 'eval('
+    - 'system('
+    - '__import__'
+    - 'subprocess'
+
+encryption:
+  enabled: true
+  algorithm: 'AES-256-GCM'
+  key_rotation_days: 90
+  sensitive_fields:
+    - 'ssn'
+    - 'credit_card'
+    - 'medical_record_number'
+    - 'insurance_id'
+    - 'password'
+    - 'api_key'
+
+audit_logging:
+  enabled: true
+  log_level: 'INFO'
+  retention_days: 365
+  events_to_log:
+    - 'user_login'
+    - 'user_logout'
+    - 'data_access'
+    - 'data_modification'
+    - 'security_event'
+    - 'pii_detection'
+    - 'injection_attempt'
+    - 'encryption_key_rotation'
+    - 'compliance_check'
+  include_request_headers: true
+  include_response_status: true
+  mask_sensitive_data: true
+
+compliance:
+  hipaa:
+    enabled: true
+    require_encryption: true
+    require_audit_logging: true
+    require_access_controls: true
+    require_data_integrity: true
+    require_authentication: true
+    minimum_password_length: 12
+    require_mfa: true
+  gdpr:
+    enabled: true
+    require_consent: true
+    require_data_minimization: true
+    require_purpose_limitation: true
+    require_storage_limitation: true
+    data_retention_days: 2555
+    require_right_to_be_forgotten: true
+    require_data_portability: true
+  ccpa:
+    enabled: false
+    require_opt_out: false
+    require_data_sale_disclosure: false
+
+rate_limiting:
+  enabled: true
+  requests_per_minute: 60
+  requests_per_hour: 1000
+  burst_size: 10
+
+password_policy:
+  minimum_length: 12
+  require_uppercase: true
+  require_lowercase: true
+  require_numbers: true
+  require_special_chars: true
+  expiration_days: 90
+  history_count: 5
+
+session_management:
+  session_timeout_minutes: 30
+  absolute_timeout_hours: 8
+  require_https: true
+  secure_cookies: true
+  httponly_cookies: true
+  samesite_policy: 'Strict'

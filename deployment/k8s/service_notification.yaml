@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: notification-service
+  namespace: fortis
+  labels:
+    app: notification
+    service: notification
+spec:
+  type: ClusterIP
+  selector:
+    app: notification
+  ports:
+  - name: http
+    port: 8000
+    targetPort: 8000
+    protocol: TCP

@@ -1,0 +1,72 @@
+version: 1
+disable_existing_loggers: false
+
+formatters:
+  json_formatter:
+    class: pythonjsonlogger.jsonlogger.JsonFormatter
+    format: "%(timestamp)s %(level)s %(name)s %(message)s"
+  standard:
+    format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: INFO
+    formatter: json_formatter
+    stream: ext://sys.stdout
+  
+  cloudwatch:
+    class: watchtower.CloudWatchLogHandler
+    level: INFO
+    log_group: /aws/lambda/llm-monitoring
+    stream_name: application-logs
+    formatter: json_formatter
+    boto3_client_kwargs:
+      region_name: us-east-1
+  
+  file:
+    class: logging.handlers.RotatingFileHandler
+    level: DEBUG
+    formatter: standard
+    filename: logs/application.log
+    maxBytes: 10485760
+    backupCount: 5
+
+loggers:
+  smart_search_service:
+    level: INFO
+    handlers:
+      - console
+      - cloudwatch
+      - file
+    propagate: false
+  
+  personalization_service:
+    level: INFO
+    handlers:
+      - console
+      - cloudwatch
+      - file
+    propagate: false
+  
+  notification_service:
+    level: INFO
+    handlers:
+      - console
+      - cloudwatch
+      - file
+    propagate: false
+  
+  metrics_collector:
+    level: INFO
+    handlers:
+      - console
+      - cloudwatch
+    propagate: false
+
+root:
+  level: INFO
+  handlers:
+    - console
+    - cloudwatch
+    - file

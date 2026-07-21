@@ -1,0 +1,489 @@
+openapi: 3.0.0
+info:
+  title: Personalization API
+  description: User personalization and persona management for healthcare recommendations
+  version: 1.0.0
+  contact:
+    name: API Support
+  license:
+    name: MIT
+servers:
+  - url: http://localhost:8000
+    description: Development server
+  - url: https://api.fortis.com
+    description: Production server
+tags:
+  - name: Personas
+    description: User persona management
+  - name: Personalization
+    description: Personalization and recommendations
+  - name: Health
+    description: Service health check
+paths:
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health check endpoint
+      description: Returns service health status
+      operationId: getHealth
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+                  timestamp:
+                    type: string
+                    format: date-time
+  /personas:
+    get:
+      tags:
+        - Personas
+      summary: List personas
+      description: Retrieve all available personas for personalization
+      operationId: listPersonas
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of results
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          description: Pagination offset
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: List of personas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  personas:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Persona'
+                  total_count:
+                    type: integer
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+        - Personas
+      summary: Create persona
+      description: Create a new user persona
+      operationId: createPersona
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePersonaRequest'
+      responses:
+        '201':
+          description: Persona created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Persona'
+        '400':
+          description: Invalid request payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /personas/{persona_id}:
+    get:
+      tags:
+        - Personas
+      summary: Get persona
+      description: Retrieve a specific persona by ID
+      operationId: getPersona
+      parameters:
+        - name: persona_id
+          in: path
+          description: Persona ID
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Persona details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Persona'
+        '404':
+          description: Persona not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags:
+        - Personas
+      summary: Update persona
+      description: Update an existing persona
+      operationId: updatePersona
+      parameters:
+        - name: persona_id
+          in: path
+          description: Persona ID
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePersonaRequest'
+      responses:
+        '200':
+          description: Persona updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Persona'
+        '400':
+          description: Invalid request payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Persona not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - Personas
+      summary: Delete persona
+      description: Delete a persona
+      operationId: deletePersona
+      parameters:
+        - name: persona_id
+          in: path
+          description: Persona ID
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Persona deleted successfully
+        '404':
+          description: Persona not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /users/{user_id}/personas:
+    get:
+      tags:
+        - Personalization
+      summary: Get user personas
+      description: Retrieve personas assigned to a specific user
+      operationId: getUserPersonas
+      parameters:
+        - name: user_id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: User personas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user_id:
+                    type: integer
+                  personas:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Persona'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+        - Personalization
+      summary: Assign persona to user
+      description: Assign a persona to a user
+      operationId: assignPersonaToUser
+      parameters:
+        - name: user_id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                persona_id:
+                  type: integer
+              required:
+                - persona_id
+      responses:
+        '201':
+          description: Persona assigned successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user_id:
+                    type: integer
+                  persona_id:
+                    type: integer
+        '400':
+          description: Invalid request payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: User or persona not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /users/{user_id}/recommendations:
+    get:
+      tags:
+        - Personalization
+      summary: Get personalized recommendations
+      description: Get personalized doctor, service, and package recommendations for a user
+      operationId: getRecommendations
+      parameters:
+        - name: user_id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: integer
+        - name: recommendation_type
+          in: query
+          description: Type of recommendations (doctors, services, packages, all)
+          required: false
+          schema:
+            type: string
+            enum:
+              - doctors
+              - services
+              - packages
+              - all
+            default: all
+        - name: limit
+          in: query
+          description: Maximum number of recommendations
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+      responses:
+        '200':
+          description: Personalized recommendations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecommendationsResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    Persona:
+      type: object
+      properties:
+        persona_id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        characteristics:
+          type: object
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+        - persona_id
+        - name
+    CreatePersonaRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        characteristics:
+          type: object
+          additionalProperties: true
+      required:
+        - name
+    UpdatePersonaRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        characteristics:
+          type: object
+          additionalProperties: true
+    RecommendationsResponse:
+      type: object
+      properties:
+        user_id:
+          type: integer
+        doctors:
+          type: array
+          items:
+            type: object
+            properties:
+              doctor_id:
+                type: integer
+              name:
+                type: string
+              specialty:
+                type: string
+              score:
+                type: number
+                format: float
+        services:
+          type: array
+          items:
+            type: object
+            properties:
+              service_id:
+                type: integer
+              name:
+                type: string
+              description:
+                type: string
+              score:
+                type: number
+                format: float
+        packages:
+          type: array
+          items:
+            type: object
+            properties:
+              package_id:
+                type: integer
+              name:
+                type: string
+              price:
+                type: number
+                format: float
+              score:
+                type: number
+                format: float
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        error_message:
+          type: string
+        status_code:
+          type: integer
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - error
+        - status_code
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - bearerAuth: []

@@ -1,0 +1,520 @@
+openapi: 3.0.0
+info:
+  title: Notification API
+  description: User notification management and preferences
+  version: 1.0.0
+  contact:
+    name: API Support
+  license:
+    name: MIT
+servers:
+  - url: http://localhost:8000
+    description: Development server
+  - url: https://api.fortis.com
+    description: Production server
+tags:
+  - name: Notifications
+    description: Notification management
+  - name: Preferences
+    description: Notification preferences
+  - name: Health
+    description: Service health check
+paths:
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health check endpoint
+      description: Returns service health status
+      operationId: getHealth
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+                  timestamp:
+                    type: string
+                    format: date-time
+  /notifications:
+    get:
+      tags:
+        - Notifications
+      summary: List notifications
+      description: Retrieve notifications for the authenticated user
+      operationId: listNotifications
+      parameters:
+        - name: user_id
+          in: query
+          description: User ID (required for non-authenticated requests)
+          required: false
+          schema:
+            type: integer
+        - name: status
+          in: query
+          description: Filter by notification status
+          required: false
+          schema:
+            type: string
+            enum:
+              - unread
+              - read
+              - archived
+        - name: limit
+          in: query
+          description: Maximum number of results
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          description: Pagination offset
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: List of notifications
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  notifications:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Notification'
+                  total_count:
+                    type: integer
+        '400':
+          description: Invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+        - Notifications
+      summary: Create notification
+      description: Create a new notification
+      operationId: createNotification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateNotificationRequest'
+      responses:
+        '201':
+          description: Notification created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+        '400':
+          description: Invalid request payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /notifications/{notification_id}:
+    get:
+      tags:
+        - Notifications
+      summary: Get notification
+      description: Retrieve a specific notification by ID
+      operationId: getNotification
+      parameters:
+        - name: notification_id
+          in: path
+          description: Notification ID
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Notification details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+        '404':
+          description: Notification not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags:
+        - Notifications
+      summary: Update notification
+      description: Update notification status or content
+      operationId: updateNotification
+      parameters:
+        - name: notification_id
+          in: path
+          description: Notification ID
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateNotificationRequest'
+      responses:
+        '200':
+          description: Notification updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+        '400':
+          description: Invalid request payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Notification not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - Notifications
+      summary: Delete notification
+      description: Delete a notification
+      operationId: deleteNotification
+      parameters:
+        - name: notification_id
+          in: path
+          description: Notification ID
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Notification deleted successfully
+        '404':
+          description: Notification not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /notifications/{notification_id}/mark-read:
+    post:
+      tags:
+        - Notifications
+      summary: Mark notification as read
+      description: Mark a notification as read
+      operationId: markNotificationAsRead
+      parameters:
+        - name: notification_id
+          in: path
+          description: Notification ID
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Notification marked as read
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+        '404':
+          description: Notification not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /notification-preferences:
+    get:
+      tags:
+        - Preferences
+      summary: Get notification preferences
+      description: Retrieve notification preferences for the authenticated user
+      operationId: getNotificationPreferences
+      parameters:
+        - name: user_id
+          in: query
+          description: User ID (required for non-authenticated requests)
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Notification preferences
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationPreferences'
+        '404':
+          description: Preferences not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags:
+        - Preferences
+      summary: Update notification preferences
+      description: Update notification preferences for the authenticated user
+      operationId: updateNotificationPreferences
+      parameters:
+        - name: user_id
+          in: query
+          description: User ID (required for non-authenticated requests)
+          required: false
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateNotificationPreferencesRequest'
+      responses:
+        '200':
+          description: Preferences updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationPreferences'
+        '400':
+          description: Invalid request payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Preferences not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    Notification:
+      type: object
+      properties:
+        notification_id:
+          type: integer
+        user_id:
+          type: integer
+        title:
+          type: string
+        message:
+          type: string
+        notification_type:
+          type: string
+          enum:
+            - appointment_reminder
+            - appointment_confirmation
+            - appointment_cancellation
+            - recommendation
+            - system
+            - promotional
+        status:
+          type: string
+          enum:
+            - unread
+            - read
+            - archived
+        created_at:
+          type: string
+          format: date-time
+        read_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+        - notification_id
+        - user_id
+        - title
+        - message
+        - notification_type
+        - status
+        - created_at
+    CreateNotificationRequest:
+      type: object
+      properties:
+        user_id:
+          type: integer
+        title:
+          type: string
+          minLength: 1
+        message:
+          type: string
+          minLength: 1
+        notification_type:
+          type: string
+          enum:
+            - appointment_reminder
+            - appointment_confirmation
+            - appointment_cancellation
+            - recommendation
+            - system
+            - promotional
+      required:
+        - user_id
+        - title
+        - message
+        - notification_type
+    UpdateNotificationRequest:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - unread
+            - read
+            - archived
+        title:
+          type: string
+          minLength: 1
+        message:
+          type: string
+          minLength: 1
+    NotificationPreferences:
+      type: object
+      properties:
+        preference_id:
+          type: integer
+        user_id:
+          type: integer
+        email_notifications_enabled:
+          type: boolean
+        sms_notifications_enabled:
+          type: boolean
+        push_notifications_enabled:
+          type: boolean
+        appointment_reminders_enabled:
+          type: boolean
+        recommendations_enabled:
+          type: boolean
+        promotional_enabled:
+          type: boolean
+        quiet_hours_start:
+          type: string
+          format: time
+          nullable: true
+        quiet_hours_end:
+          type: string
+          format: time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+        - preference_id
+        - user_id
+    UpdateNotificationPreferencesRequest:
+      type: object
+      properties:
+        email_notifications_enabled:
+          type: boolean
+        sms_notifications_enabled:
+          type: boolean
+        push_notifications_enabled:
+          type: boolean
+        appointment_reminders_enabled:
+          type: boolean
+        recommendations_enabled:
+          type: boolean
+        promotional_enabled:
+          type: boolean
+        quiet_hours_start:
+          type: string
+          format: time
+          nullable: true
+        quiet_hours_end:
+          type: string
+          format: time
+          nullable: true
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        error_message:
+          type: string
+        status_code:
+          type: integer
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - error
+        - status_code
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - bearerAuth: []

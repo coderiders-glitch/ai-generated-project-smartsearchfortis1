@@ -1,0 +1,65 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: data-pipeline
+  namespace: fortis
+  labels:
+    app: data-pipeline
+spec:
+  schedule: "0 2 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: data-pipeline
+        spec:
+          serviceAccountName: data-pipeline
+          containers:
+          - name: data-pipeline
+            image: fortis/data-pipeline:latest
+            imagePullPolicy: IfNotPresent
+            env:
+            - name: DB_HOST
+              value: "postgres-service.fortis.svc.cluster.local"
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: fortis-secrets
+                  key: DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: fortis-secrets
+                  key: DB_PASSWORD
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: fortis-secrets
+                  key: DB_NAME
+            - name: REDIS_HOST
+              value: "redis-service.fortis.svc.cluster.local"
+            - name: REDIS_PORT
+              value: "6379"
+            - name: OPENSEARCH_HOST
+              value: "opensearch-service.fortis.svc.cluster.local"
+            - name: OPENSEARCH_PORT
+              value: "9200"
+            - name: LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: fortis-config
+                  key: LOG_LEVEL
+            resources:
+              requests:
+                memory: "512Mi"
+                cpu: "500m"
+              limits:
+                memory: "1Gi"
+                cpu: "1000m"
+          restartPolicy: OnFailure

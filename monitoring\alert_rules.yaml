@@ -1,0 +1,117 @@
+AlertRules:
+  - AlertName: HighErrorRate
+    MetricName: ErrorRate
+    Namespace: LLMMonitoring
+    Statistic: Average
+    Period: 300
+    EvaluationPeriods: 2
+    Threshold: 5.0
+    ComparisonOperator: GreaterThanThreshold
+    AlarmActions:
+      - arn:aws:sns:us-east-1:ACCOUNT_ID:AlertTopic
+    TreatMissingData: notBreaching
+    Description: Alert when error rate exceeds 5% over 10 minutes
+
+  - AlertName: HighLatency
+    MetricName: RequestLatency
+    Namespace: LLMMonitoring
+    Statistic: Average
+    Period: 300
+    EvaluationPeriods: 2
+    Threshold: 5000.0
+    ComparisonOperator: GreaterThanThreshold
+    AlarmActions:
+      - arn:aws:sns:us-east-1:ACCOUNT_ID:AlertTopic
+    TreatMissingData: notBreaching
+    Description: Alert when average request latency exceeds 5 seconds
+
+  - AlertName: HighTokenUsage
+    MetricName: TokenCount
+    Namespace: LLMMonitoring
+    Statistic: Sum
+    Period: 3600
+    EvaluationPeriods: 1
+    Threshold: 1000000.0
+    ComparisonOperator: GreaterThanThreshold
+    AlarmActions:
+      - arn:aws:sns:us-east-1:ACCOUNT_ID:AlertTopic
+    TreatMissingData: notBreaching
+    Description: Alert when hourly token usage exceeds 1 million
+
+  - AlertName: LowCacheHitRate
+    MetricName: CacheHitRate
+    Namespace: LLMMonitoring
+    Statistic: Average
+    Period: 300
+    EvaluationPeriods: 3
+    Threshold: 30.0
+    ComparisonOperator: LessThanThreshold
+    AlarmActions:
+      - arn:aws:sns:us-east-1:ACCOUNT_ID:AlertTopic
+    TreatMissingData: notBreaching
+    Description: Alert when cache hit rate drops below 30%
+
+  - AlertName: ServiceDown
+    MetricName: RequestCount
+    Namespace: LLMMonitoring
+    Statistic: Sum
+    Period: 60
+    EvaluationPeriods: 2
+    Threshold: 1.0
+    ComparisonOperator: LessThanThreshold
+    AlarmActions:
+      - arn:aws:sns:us-east-1:ACCOUNT_ID:AlertTopic
+    TreatMissingData: breaching
+    Description: Alert when service receives no requests for 2 minutes
+
+  - AlertName: ModelInferenceTimeHigh
+    MetricName: ModelInferenceTime
+    Namespace: LLMMonitoring
+    Statistic: Average
+    Period: 300
+    EvaluationPeriods: 2
+    Threshold: 3000.0
+    ComparisonOperator: GreaterThanThreshold
+    AlarmActions:
+      - arn:aws:sns:us-east-1:ACCOUNT_ID:AlertTopic
+    TreatMissingData: notBreaching
+    Description: Alert when model inference time exceeds 3 seconds
+
+  - AlertName: SearchServiceLatencyHigh
+    MetricName: SearchLatency
+    Namespace: LLMMonitoring
+    Statistic: Average
+    Period: 300
+    EvaluationPeriods: 2
+    Threshold: 2000.0
+    ComparisonOperator: GreaterThanThreshold
+    AlarmActions:
+      - arn:aws:sns:us-east-1:ACCOUNT_ID:AlertTopic
+    TreatMissingData: notBreaching
+    Description: Alert when search service latency exceeds 2 seconds
+
+  - AlertName: PersonalizationServiceLatencyHigh
+    MetricName: PersonalizationLatency
+    Namespace: LLMMonitoring
+    Statistic: Average
+    Period: 300
+    EvaluationPeriods: 2
+    Threshold: 1500.0
+    ComparisonOperator: GreaterThanThreshold
+    AlarmActions:
+      - arn:aws:sns:us-east-1:ACCOUNT_ID:AlertTopic
+    TreatMissingData: notBreaching
+    Description: Alert when personalization service latency exceeds 1.5 seconds
+
+  - AlertName: NotificationServiceLatencyHigh
+    MetricName: NotificationLatency
+    Namespace: LLMMonitoring
+    Statistic: Average
+    Period: 300
+    EvaluationPeriods: 2
+    Threshold: 1000.0
+    ComparisonOperator: GreaterThanThreshold
+    AlarmActions:
+      - arn:aws:sns:us-east-1:ACCOUNT_ID:AlertTopic
+    TreatMissingData: notBreaching
+    Description: Alert when notification service latency exceeds 1 second

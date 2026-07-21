@@ -1,0 +1,11 @@
+# Medical and healthcare synonyms for search
+doctor => physician, md, medical_doctor
+appointment => consultation, visit, meeting, session
+service => procedure, treatment, therapy
+specialty => specialization, field, discipline
+package => plan, bundle, offering
+health => wellness, medical, clinical
+record => document, file, history
+notification => alert, message, reminder
+query => search, question, inquiry
+result => outcome, finding, response

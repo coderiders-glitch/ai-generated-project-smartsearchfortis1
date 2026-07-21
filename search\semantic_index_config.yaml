@@ -1,0 +1,134 @@
+semantic_search_config:
+  enabled: true
+  embedding_model:
+    provider: openai
+    model_name: text-embedding-3-small
+    # API key loaded from environment variable OPENAI_API_KEY at runtime
+    vector_dimension: 1536
+    batch_size: 100
+    timeout_seconds: 30
+  
+  vector_stores:
+    - store_type: milvus
+      host: localhost
+      port: 19530
+      database_name: healthcare_search
+      # Pinecone credentials (PINECONE_API_KEY, PINECONE_ENVIRONMENT) loaded from environment at runtime
+      collections:
+        - doctor_embeddings
+        - service_embeddings
+        - specialty_embeddings
+        - package_embeddings
+        - user_query_embeddings
+      connection_pool_size: 10
+      timeout_seconds: 30
+    
+    - store_type: pinecone
+      api_key: ${PINECONE_API_KEY}
+      environment: ${PINECONE_ENVIRONMENT}
+      index_name: healthcare-semantic-search
+      namespace: production
+      metric: cosine
+      dimension: 1536
+  
+  indexing_strategy:
+    incremental: true
+    batch_size: 100
+    schedule: "0 2 * * *"
+    retry_policy:
+      max_retries: 3
+      backoff_multiplier: 2
+      initial_delay_seconds: 1
+  
+  search_config:
+    top_k: 10
+    similarity_threshold: 0.7
+    hybrid_search_enabled: true
+    hybrid_weight_vector: 0.6
+    hybrid_weight_keyword: 0.4
+    reranking_enabled: true
+    reranker_model: cross-encoder/ms-marco-MiniLM-L-12-v2
+  
+  entity_indexing:
+    - entity_type: doctor
+      fields_to_embed:
+        - first_name
+        - last_name
+        - specialty_name
+        - bio
+      collection_name: doctor_embeddings
+      update_frequency: daily
+    
+    - entity_type: service
+      fields_to_embed:
+        - service_name
+        - service_description
+      collection_name: service_embeddings
+      update_frequency: daily
+    
+    - entity_type: specialty
+      fields_to_embed:
+        - specialty_name
+        - description
+      collection_name: specialty_embeddings
+      update_frequency: daily
+    
+    - entity_type: package
+      fields_to_embed:
+        - package_name
+        - package_description
+      collection_name: package_embeddings
+      update_frequency: daily
+    
+    - entity_type: search_query
+      fields_to_embed:
+        - search_query
+      collection_name: user_query_embeddings
+      update_frequency: real_time
+  
+  typo_tolerance:
+    enabled: true
+    fuzzy_matching:
+      fuzziness: AUTO
+      prefix_length: 0
+      max_expansions: 50
+    phonetic_matching: true
+    phonetic_encoder: metaphone
+  
+  keyword_search:
+    analyzer: standard
+    tokenizer: standard
+    filters:
+      - lowercase
+      - stop
+      - synonym
+    synonym_file: search/synonyms.txt
+    enable_stemming: true
+    stemmer: english
+  
+  caching:
+    enabled: true
+    cache_type: redis
+    redis_host: localhost
+    redis_port: 6379
+    ttl_seconds: 3600
+    max_cache_size_mb: 500
+  
+  monitoring:
+    enabled: true
+    metrics_collection:
+      - query_latency
+      - embedding_latency
+      - cache_hit_rate
+      - index_size
+    log_level: INFO
+    alert_thresholds:
+      query_latency_ms: 1000
+      embedding_latency_ms: 500
+      cache_hit_rate_percent: 50
+  
+  fallback_strategy:
+    enabled: true
+    fallback_to_keyword: true
+    fallback_to_elasticsearch: true
+    timeout_seconds: 5

@@ -1,0 +1,522 @@
+openapi: 3.0.0
+info:
+  title: Smart Search API
+  description: Full-text and semantic search across healthcare entities (doctors, specialties, services, packages, appointments)
+  version: 1.0.0
+  contact:
+    name: API Support
+  license:
+    name: MIT
+servers:
+  - url: http://localhost:8000
+    description: Development server
+  - url: https://api.fortis.com
+    description: Production server
+tags:
+  - name: Search
+    description: Full-text and semantic search operations
+  - name: Health
+    description: Service health check
+paths:
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health check endpoint
+      description: Returns service health status
+      operationId: getHealth
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+                  timestamp:
+                    type: string
+                    format: date-time
+  /search/doctors:
+    get:
+      tags:
+        - Search
+      summary: Search doctors
+      description: Search doctors by name, specialty, or services using full-text and semantic search
+      operationId: searchDoctors
+      parameters:
+        - name: query
+          in: query
+          description: Search query string
+          required: true
+          schema:
+            type: string
+            minLength: 1
+        - name: specialty_id
+          in: query
+          description: Filter by specialty ID
+          required: false
+          schema:
+            type: integer
+        - name: search_type
+          in: query
+          description: Type of search (full_text, semantic, hybrid)
+          required: false
+          schema:
+            type: string
+            enum:
+              - full_text
+              - semantic
+              - hybrid
+            default: hybrid
+        - name: limit
+          in: query
+          description: Maximum number of results
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          description: Pagination offset
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DoctorSearchResult'
+                  total_count:
+                    type: integer
+                  query:
+                    type: string
+        '400':
+          description: Invalid search parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /search/services:
+    get:
+      tags:
+        - Search
+      summary: Search services
+      description: Search healthcare services by name, description, or specialty
+      operationId: searchServices
+      parameters:
+        - name: query
+          in: query
+          description: Search query string
+          required: true
+          schema:
+            type: string
+            minLength: 1
+        - name: search_type
+          in: query
+          description: Type of search (full_text, semantic, hybrid)
+          required: false
+          schema:
+            type: string
+            enum:
+              - full_text
+              - semantic
+              - hybrid
+            default: hybrid
+        - name: limit
+          in: query
+          description: Maximum number of results
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          description: Pagination offset
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ServiceSearchResult'
+                  total_count:
+                    type: integer
+                  query:
+                    type: string
+        '400':
+          description: Invalid search parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /search/specialties:
+    get:
+      tags:
+        - Search
+      summary: Search specialties
+      description: Search medical specialties by name or description
+      operationId: searchSpecialties
+      parameters:
+        - name: query
+          in: query
+          description: Search query string
+          required: true
+          schema:
+            type: string
+            minLength: 1
+        - name: search_type
+          in: query
+          description: Type of search (full_text, semantic, hybrid)
+          required: false
+          schema:
+            type: string
+            enum:
+              - full_text
+              - semantic
+              - hybrid
+            default: hybrid
+        - name: limit
+          in: query
+          description: Maximum number of results
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SpecialtySearchResult'
+                  total_count:
+                    type: integer
+                  query:
+                    type: string
+        '400':
+          description: Invalid search parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /search/packages:
+    get:
+      tags:
+        - Search
+      summary: Search packages
+      description: Search healthcare packages by name, description, or included services
+      operationId: searchPackages
+      parameters:
+        - name: query
+          in: query
+          description: Search query string
+          required: true
+          schema:
+            type: string
+            minLength: 1
+        - name: search_type
+          in: query
+          description: Type of search (full_text, semantic, hybrid)
+          required: false
+          schema:
+            type: string
+            enum:
+              - full_text
+              - semantic
+              - hybrid
+            default: hybrid
+        - name: limit
+          in: query
+          description: Maximum number of results
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          description: Pagination offset
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PackageSearchResult'
+                  total_count:
+                    type: integer
+                  query:
+                    type: string
+        '400':
+          description: Invalid search parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /search/appointments:
+    get:
+      tags:
+        - Search
+      summary: Search appointments
+      description: Search appointments by doctor, specialty, date, or status
+      operationId: searchAppointments
+      parameters:
+        - name: query
+          in: query
+          description: Search query string
+          required: true
+          schema:
+            type: string
+            minLength: 1
+        - name: doctor_id
+          in: query
+          description: Filter by doctor ID
+          required: false
+          schema:
+            type: integer
+        - name: status
+          in: query
+          description: Filter by appointment status
+          required: false
+          schema:
+            type: string
+            enum:
+              - scheduled
+              - completed
+              - cancelled
+        - name: limit
+          in: query
+          description: Maximum number of results
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AppointmentSearchResult'
+                  total_count:
+                    type: integer
+                  query:
+                    type: string
+        '400':
+          description: Invalid search parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    DoctorSearchResult:
+      type: object
+      properties:
+        doctor_id:
+          type: integer
+        name:
+          type: string
+        specialty:
+          type: string
+        experience_years:
+          type: integer
+        rating:
+          type: number
+          format: float
+        relevance_score:
+          type: number
+          format: float
+          description: Search relevance score (0-1)
+      required:
+        - doctor_id
+        - name
+        - specialty
+    ServiceSearchResult:
+      type: object
+      properties:
+        service_id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        specialty:
+          type: string
+        relevance_score:
+          type: number
+          format: float
+          description: Search relevance score (0-1)
+      required:
+        - service_id
+        - name
+    SpecialtySearchResult:
+      type: object
+      properties:
+        specialty_id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        doctor_count:
+          type: integer
+        relevance_score:
+          type: number
+          format: float
+          description: Search relevance score (0-1)
+      required:
+        - specialty_id
+        - name
+    PackageSearchResult:
+      type: object
+      properties:
+        package_id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+          format: float
+        service_count:
+          type: integer
+        relevance_score:
+          type: number
+          format: float
+          description: Search relevance score (0-1)
+      required:
+        - package_id
+        - name
+        - price
+    AppointmentSearchResult:
+      type: object
+      properties:
+        appointment_id:
+          type: integer
+        doctor_name:
+          type: string
+        specialty:
+          type: string
+        appointment_date:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum:
+            - scheduled
+            - completed
+            - cancelled
+        relevance_score:
+          type: number
+          format: float
+          description: Search relevance score (0-1)
+      required:
+        - appointment_id
+        - doctor_name
+        - appointment_date
+        - status
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        error_message:
+          type: string
+        status_code:
+          type: integer
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - error
+        - status_code
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - bearerAuth: []
